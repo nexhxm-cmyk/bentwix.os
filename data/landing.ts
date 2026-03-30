@@ -108,6 +108,33 @@ export const FEATURES = [
   },
 ];
 
+export const ADD_ONS = [
+  {
+    id: 1,
+    title: 'Graphic Design',
+    description: 'Custom branding, UI/UX, and creative assets tailored to your agency.',
+    icon: '🎨',
+  },
+  {
+    id: 2,
+    title: 'AI Agents',
+    description: 'AI-driven workflow automation, chatbot support, and data insights.',
+    icon: '🤖',
+  },
+  {
+    id: 3,
+    title: 'Web Development',
+    description: 'Modern responsive websites, landing pages, and app interfaces.',
+    icon: '🌐',
+  },
+  {
+    id: 4,
+    title: 'Media Buying',
+    description: 'Performance media strategy, ad campaigns, and conversion optimization.',
+    icon: '📣',
+  },
+];
+
 export const HOW_IT_WORKS = [
   {
     id: 1,
