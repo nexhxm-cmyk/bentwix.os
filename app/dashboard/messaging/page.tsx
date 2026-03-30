@@ -4,24 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/Button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
+import { useDashboard } from '../DashboardProvider';
 import { useState } from 'react';
 
-const CHANNELS = [
-  { id: '1', name: 'general', unread: 0 },
-  { id: '2', name: 'projects', unread: 3 },
-  { id: '3', name: 'announcements', unread: 0 },
-  { id: '4', name: 'random', unread: 2 },
-];
-
-const MESSAGES = [
-  { id: '1', author: 'John Smith', message: 'Hey team, project kickoff is tomorrow at 10 AM', timestamp: '10:30 AM' },
-  { id: '2', author: 'Sarah Chen', message: "Got it! I'll prepare the requirements document", timestamp: '10:35 AM' },
-  { id: '3', author: 'Mike Johnson', message: 'Count me in! See you then', timestamp: '10:40 AM' },
-  { id: '4', author: 'John Smith', message: "Perfect, let's make it great!", timestamp: '10:42 AM' },
-];
+const CHANNELS = ['general', 'projects', 'announcements', 'random'];
 
 export default function MessagingPage() {
+  const { activeChannel, setActiveChannel, messages, sendMessage } = useDashboard();
   const [message, setMessage] = useState('');
+
+  const filteredMessages = messages.filter(msg => msg.channel === activeChannel);
+
+  const handleSend = () => {
+    if (!message.trim()) return;
+    sendMessage(message, 'team');
+    setMessage('');
+  };
+
 
   return (
     <div className="grid gap-6 md:grid-cols-4 h-[calc(100vh-200px)]">
@@ -33,13 +32,13 @@ export default function MessagingPage() {
         <CardContent className="flex-1 overflow-y-auto space-y-2">
           {CHANNELS.map(channel => (
             <button
-              key={channel.id}
-              className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/20 transition text-left"
+              key={channel}
+              onClick={() => setActiveChannel(channel)}
+              className={`w-full flex items-center justify-between p-2 rounded-lg transition text-left ${
+                activeChannel === channel ? 'bg-primary/20' : 'hover:bg-muted/20'
+              }`}
             >
-              <span className="text-sm">#{channel.name}</span>
-              {channel.unread > 0 && (
-                <span className="badge-primary text-xs">{channel.unread}</span>
-              )}
+              <span className="text-sm">#{channel}</span>
             </button>
           ))}
         </CardContent>
@@ -52,7 +51,7 @@ export default function MessagingPage() {
           <CardDescription>Team project discussions</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto mb-4 space-y-4">
-          {MESSAGES.map(msg => (
+          {filteredMessages.map(msg => (
             <div key={msg.id} className="flex gap-3 pb-4 border-b border-border/50 last:border-0">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold">
@@ -76,8 +75,9 @@ export default function MessagingPage() {
             className="input-base flex-1"
             value={message}
             onChange={e => setMessage(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
           />
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={handleSend}>
             <Send className="h-5 w-5" />
           </Button>
         </div>

@@ -3,7 +3,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/ui/input';
+import { useDashboard } from '../DashboardProvider';
 import { Download, Filter } from 'lucide-react';
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const REPORT_DATA = [
@@ -23,6 +25,8 @@ const DISTRIBUTION_DATA = [
 const COLORS = ['#38BDF8', '#0EA5E9', '#06B6D4', '#10B981'];
 
 export default function ReportsPage() {
+  const { reports } = useDashboard();
+
   return (
     <div className="space-y-8">
       <div>
@@ -51,7 +55,7 @@ export default function ReportsPage() {
             <Filter className="h-5 w-5" />
             Apply Filters
           </Button>
-          <Button variant="secondary" className="gap-2 ml-auto">
+          <Button variant="secondary" className="gap-2 ml-auto" onClick={reports.exportCSV}>
             <Download className="h-5 w-5" />
             Export CSV
           </Button>

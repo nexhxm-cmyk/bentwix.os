@@ -5,18 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/DataTable';
 import { Button } from '@/components/Button';
 import { Plus } from 'lucide-react';
+import { useDashboard } from '../DashboardProvider';
 import { formatCurrency } from '@/lib/utils';
 
-const PAYROLL_DATA = [
-  { id: '1', employee: 'John Smith', salary: 5000, commission: 500, bonus: 200, total: 5700 },
-  { id: '2', employee: 'Sarah Chen', salary: 4500, commission: 800, bonus: 150, total: 5450 },
-  { id: '3', employee: 'Mike Johnson', salary: 4000, commission: 300, bonus: 100, total: 4400 },
-  { id: '4', employee: 'Elena Davis', salary: 4500, commission: 600, bonus: 200, total: 5300 },
-];
-
 export default function PayrollPage() {
-  const totalPaid = PAYROLL_DATA.reduce((sum, item) => sum + item.total, 0);
-  const avgSalary = Math.round(PAYROLL_DATA.reduce((sum, item) => sum + item.salary, 0) / PAYROLL_DATA.length);
+  const { payroll, addPayrollRecord } = useDashboard();
+
+  const handleProcessPayroll = () => {
+    const employee = prompt('Employee name');
+    const salary = Number(prompt('Salary', '0') || '0');
+    const commission = Number(prompt('Commission', '0') || '0');
+    const bonus = Number(prompt('Bonus', '0') || '0');
+    if (!employee || salary <= 0) return;
+    addPayrollRecord({ employee, salary, commission, bonus });
+  };
+
+  const totalPaid = payroll.reduce((sum, item) => sum + item.total, 0);
+  const avgSalary = payroll.length ? Math.round(payroll.reduce((sum, item) => sum + item.salary, 0) / payroll.length) : 0;
 
   return (
     <div className="space-y-8">
@@ -25,7 +30,7 @@ export default function PayrollPage() {
           <h1 className="text-3xl font-bold">Payroll</h1>
           <p className="text-muted-foreground mt-2">Manage employee compensation</p>
         </div>
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={handleProcessPayroll}>
           <Plus className="h-5 w-5" />
           Process Payroll
         </Button>
@@ -41,18 +46,18 @@ export default function PayrollPage() {
         <StatCard
           title="Avg Salary"
           value={formatCurrency(avgSalary)}
-          description={`${PAYROLL_DATA.length} employees`}
+          description={`${payroll.length} employees`}
           icon="👥"
         />
         <StatCard
           title="Commissions"
-          value={formatCurrency(2200)}
+          value={formatCurrency(payroll.reduce((sum, item) => sum + item.commission, 0))}
           description="This period"
           icon="🎯"
         />
         <StatCard
           title="Bonuses"
-          value={formatCurrency(650)}
+          value={formatCurrency(payroll.reduce((sum, item) => sum + item.bonus, 0))}
           description="Total bonuses"
           icon="🎁"
         />
@@ -72,10 +77,11 @@ export default function PayrollPage() {
               { key: 'bonus', label: 'Bonus', render: (val) => formatCurrency(val) },
               { key: 'total', label: 'Total', render: (val) => formatCurrency(val) },
             ]}
-            data={PAYROLL_DATA}
+            data={payroll}
           />
         </CardContent>
       </Card>
     </div>
   );
 }
+

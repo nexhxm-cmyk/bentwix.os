@@ -6,38 +6,26 @@ import { DataTable } from '@/components/DataTable';
 import { Button } from '@/components/Button';
 import { Plus } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
-
-const PROJECTS = [
-  {
-    id: '1',
-    name: 'Website Redesign',
-    client: 'Acme Corp',
-    status: 'active',
-    budget: 15000,
-    spent: 9200,
-    progress: 65,
-  },
-  {
-    id: '2',
-    name: 'Mobile App',
-    client: 'Tech Startup',
-    status: 'active',
-    budget: 30000,
-    spent: 18500,
-    progress: 45,
-  },
-  {
-    id: '3',
-    name: 'Brand Identity',
-    client: 'Digital Agency',
-    status: 'completed',
-    budget: 5000,
-    spent: 5000,
-    progress: 100,
-  },
-];
+import { useDashboard } from '../DashboardProvider';
 
 export default function ProjectsPage() {
+  const { projects, addProject } = useDashboard();
+
+  const handleNewProject = () => {
+    const name = prompt('Project name');
+    const client = prompt('Client name');
+    const budget = Number(prompt('Budget', '0') || '0');
+    if (!name || !client) return;
+    addProject({
+      name,
+      client,
+      status: 'active',
+      budget,
+      spent: 0,
+      progress: 0,
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -45,7 +33,7 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold">Projects</h1>
           <p className="text-muted-foreground mt-2">Manage all your agency projects</p>
         </div>
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={handleNewProject}>
           <Plus className="h-5 w-5" />
           New Project
         </Button>
@@ -54,19 +42,21 @@ export default function ProjectsPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           title="Total Projects"
-          value="3"
-          description="2 active"
+          value={projects.length.toString()}
+          description={`${projects.filter(p => p.status === 'active').length} active`}
           icon="📁"
         />
         <StatCard
           title="Budget Used"
-          value={`${Math.round((27700 / 50000) * 100)}%`}
-          description={`${formatCurrency(27700)} of ${formatCurrency(50000)}`}
+          value={
+            `${Math.round((projects.reduce((sum, item) => sum + item.spent, 0) / Math.max(1, projects.reduce((sum, item) => sum + item.budget, 0))) * 100)}%`
+          }
+          description={`${formatCurrency(projects.reduce((sum, item) => sum + item.spent, 0))} of ${formatCurrency(projects.reduce((sum, item) => sum + item.budget, 0))}`}
           icon="💰"
         />
         <StatCard
           title="Avg. Progress"
-          value="70%"
+          value={`${Math.round(projects.reduce((sum, item) => sum + item.progress, 0) / Math.max(1, projects.length))}%`}
           description="Across all projects"
           icon="📈"
         />
@@ -114,7 +104,7 @@ export default function ProjectsPage() {
                 render: (_, item: any) => `${formatCurrency(item.spent)} / ${formatCurrency(item.budget)}`,
               },
             ]}
-            data={PROJECTS}
+            data={projects}
           />
         </CardContent>
       </Card>

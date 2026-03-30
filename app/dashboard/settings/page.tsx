@@ -61,8 +61,8 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border border-border rounded-lg">
             <div>
-              <p className="font-semibold">Stripe</p>
-              <p className="text-sm text-muted-foreground">Connected</p>
+              <p className="font-semibold">Manual Payment</p>
+              <p className="text-sm text-muted-foreground">Enabled (cash/bank/custom tracking)</p>
             </div>
             <Button variant="secondary">Configure</Button>
           </div>

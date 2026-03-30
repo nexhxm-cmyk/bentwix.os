@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 
 interface Column<T> {
-  key: keyof T;
+  key: keyof T | string;
   label: string;
   render?: (value: any, item: T) => React.ReactNode;
   className?: string;
@@ -45,16 +45,17 @@ export function DataTable<T extends { id: string }>({
                 onRowClick && 'cursor-pointer hover:bg-muted/10'
               )}
             >
-              {columns.map(col => (
-                <td
-                  key={String(col.key)}
-                  className={cn('px-4 py-3', col.className)}
-                >
-                  {col.render
-                    ? col.render(item[col.key], item)
-                    : String(item[col.key] || '-')}
-                </td>
-              ))}
+              {columns.map(col => {
+                const value = (item as any)[col.key];
+                return (
+                  <td
+                    key={String(col.key)}
+                    className={cn('px-4 py-3', col.className)}
+                  >
+                    {col.render ? col.render(value, item) : String(value ?? '-')}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

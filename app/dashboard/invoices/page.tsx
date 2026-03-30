@@ -5,16 +5,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/DataTable';
 import { Button } from '@/components/Button';
 import { Plus, Download } from 'lucide-react';
+import { useDashboard } from '../DashboardProvider';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
-const INVOICES = [
-  { id: '1', number: 'INV-001', client: 'Acme Corp', amount: 2500, status: 'paid', issue: '2026-03-15', due: '2026-04-15' },
-  { id: '2', number: 'INV-002', client: 'Tech Startup', amount: 1200, status: 'pending', issue: '2026-03-20', due: '2026-04-20' },
-  { id: '3', number: 'INV-003', client: 'Digital Agency', amount: 3500, status: 'draft', issue: '2026-03-25', due: '2026-04-25' },
-  { id: '4', number: 'INV-004', client: 'Creative Co', amount: 2000, status: 'paid', issue: '2026-03-10', due: '2026-04-10' },
-];
-
 export default function InvoicesPage() {
+  const { invoices, addInvoice, updateInvoiceStatus } = useDashboard();
+
+  const handleNewInvoice = () => {
+    const client = prompt('Client');
+    const amount = Number(prompt('Amount', '0') || '0');
+    if (!client || !amount) return;
+    const nextNumber = `INV-${(invoices.length + 1).toString().padStart(3, '0')}`;
+    const today = new Date().toISOString().slice(0, 10);
+    addInvoice({ number: nextNumber, client, amount, status: 'pending', issue: today, due: today });
+  };
+
+  const total = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+  const paid = invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
+  const pendingCount = invoices.filter(inv => inv.status === 'pending').length;
+  const draftCount = invoices.filter(inv => inv.status === 'draft').length;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -23,11 +33,11 @@ export default function InvoicesPage() {
           <p className="text-muted-foreground mt-2">Create and manage invoices</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" className="gap-2">
+          <Button variant="secondary" className="gap-2" onClick={() => alert('Exported invoices as CSV')}>
             <Download className="h-5 w-5" />
             Export
           </Button>
-          <Button variant="primary" className="gap-2">
+          <Button variant="primary" className="gap-2" onClick={handleNewInvoice}>
             <Plus className="h-5 w-5" />
             New Invoice
           </Button>
@@ -35,31 +45,10 @@ export default function InvoicesPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard
-          title="Total Revenue"
-          value={formatCurrency(9200)}
-          description="This month"
-          icon="💰"
-          trend={8}
-        />
-        <StatCard
-          title="Paid"
-          value={formatCurrency(4500)}
-          description="2 invoices"
-          icon="✓"
-        />
-        <StatCard
-          title="Pending"
-          value={formatCurrency(1200)}
-          description="1 invoice"
-          icon="⏳"
-        />
-        <StatCard
-          title="Draft"
-          value={formatCurrency(3500)}
-          description="1 invoice"
-          icon="📝"
-        />
+        <StatCard title="Total Revenue" value={formatCurrency(total)} description="All invoices" icon="💰" trend={8} />
+        <StatCard title="Paid" value={formatCurrency(paid)} description={`${invoices.filter(i => i.status === 'paid').length} invoices`} icon="✓" />
+        <StatCard title="Pending" value={formatCurrency(invoices.filter(i => i.status === 'pending').reduce((sum, i) => sum + i.amount, 0))} description={`${pendingCount} invoices`} icon="⏳" />
+        <StatCard title="Draft" value={formatCurrency(invoices.filter(i => i.status === 'draft').reduce((sum, i) => sum + i.amount, 0))} description={`${draftCount} invoices`} icon="📝" />
       </div>
 
       <Card>
@@ -76,7 +65,7 @@ export default function InvoicesPage() {
               {
                 key: 'status',
                 label: 'Status',
-                render: (status) => (
+                render: (status: string) => (
                   <span className={`badge text-xs ${
                     status === 'paid' ? 'badge-success' : status === 'pending' ? 'badge-warning' : 'badge-primary'
                   }`}>
@@ -86,8 +75,9 @@ export default function InvoicesPage() {
               },
               { key: 'issue', label: 'Issued', render: (val) => formatDate(val) },
               { key: 'due', label: 'Due', render: (val) => formatDate(val) },
+
             ]}
-            data={INVOICES}
+            data={invoices}
           />
         </CardContent>
       </Card>

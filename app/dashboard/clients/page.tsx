@@ -5,18 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { DataTable } from '@/components/DataTable';
 import { Button } from '@/components/Button';
 import { Plus } from 'lucide-react';
+import { useDashboard } from '../DashboardProvider';
 import { formatCurrency } from '@/lib/utils';
 
-const CLIENTS = [
-  { id: '1', name: 'Acme Corp', email: 'contact@acme.com', status: 'active', revenue: 12500, projects: 3 },
-  { id: '2', name: 'Tech Startup', email: 'hello@techstartup.com', status: 'active', revenue: 8200, projects: 2 },
-  { id: '3', name: 'Digital Agency', email: 'info@digitalagency.com', status: 'active', revenue: 15000, projects: 4 },
-  { id: '4', name: 'Creative Co', email: 'contact@creative.co', status: 'inactive', revenue: 5000, projects: 1 },
-];
-
 export default function ClientsPage() {
-  const totalRevenue = CLIENTS.reduce((sum, client) => sum + client.revenue, 0);
-  const activeClients = CLIENTS.filter(c => c.status === 'active').length;
+  const { clients, addClient } = useDashboard();
+
+  const handleNewClient = () => {
+    const name = prompt('Client name');
+    const email = prompt('Client email');
+    if (!name || !email) return;
+    addClient({
+      name,
+      email,
+      status: 'active',
+      revenue: 0,
+      projects: 0,
+    });
+  };
+
+  const totalRevenue = clients.reduce((sum, client) => sum + client.revenue, 0);
+  const activeClients = clients.filter(c => c.status === 'active').length;
 
   return (
     <div className="space-y-8">
@@ -25,7 +34,7 @@ export default function ClientsPage() {
           <h1 className="text-3xl font-bold">Clients</h1>
           <p className="text-muted-foreground mt-2">Manage your client relationships</p>
         </div>
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={handleNewClient}>
           <Plus className="h-5 w-5" />
           New Client
         </Button>
@@ -34,7 +43,7 @@ export default function ClientsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
           title="Total Clients"
-          value={CLIENTS.length.toString()}
+          value={clients.length.toString()}
           description={`${activeClients} active`}
           icon="🤝"
         />
@@ -52,7 +61,7 @@ export default function ClientsPage() {
         />
         <StatCard
           title="Avg Value"
-          value={formatCurrency(Math.round(totalRevenue / CLIENTS.length))}
+          value={formatCurrency(Math.round(totalRevenue / Math.max(1, clients.length)))}
           description="Per client"
           icon="📊"
         />
@@ -71,7 +80,7 @@ export default function ClientsPage() {
               {
                 key: 'status',
                 label: 'Status',
-                render: (status) => (
+                render: (status: string) => (
                   <span className={`badge text-xs ${
                     status === 'active' ? 'badge-success' : 'badge-primary'
                   }`}>
@@ -82,10 +91,11 @@ export default function ClientsPage() {
               { key: 'revenue', label: 'Revenue', render: (val) => formatCurrency(val) },
               { key: 'projects', label: 'Projects' },
             ]}
-            data={CLIENTS}
+            data={clients}
           />
         </CardContent>
       </Card>
     </div>
   );
 }
+

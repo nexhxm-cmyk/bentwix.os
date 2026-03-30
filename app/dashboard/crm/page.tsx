@@ -4,77 +4,34 @@ import { KanbanBoard, type KanbanColumn } from '@/components/KanbanBoard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { formatCurrency, formatDate } from '@/lib/utils';
-
-const INITIAL_DEALS: KanbanColumn[] = [
-  {
-    id: 'prospecting',
-    title: 'Prospecting',
-    items: [
-      { id: '1', title: 'Startup Alpha', description: '$50k - New lead' },
-      { id: '2', title: 'Company Beta', description: '$35k - Cold reach out' },
-    ],
-  },
-  {
-    id: 'negotiation',
-    title: 'Negotiation',
-    items: [
-      { id: '3', title: 'Gamma Corp', description: '$120k - Under discussion' },
-    ],
-  },
-  {
-    id: 'proposal',
-    title: 'Proposal',
-    items: [
-      { id: '4', title: 'Delta Inc', description: '$80k - Quote sent' },
-      { id: '5', title: 'Epsilon Ltd', description: '$45k - Awaiting response' },
-    ],
-  },
-  {
-    id: 'won',
-    title: 'Won',
-    items: [
-      { id: '6', title: 'Zeta Industries', description: '$150k - Contract signed' },
-      { id: '7', title: 'Eta Systems', description: '$95k - Onboarded' },
-    ],
-  },
-];
+import { useDashboard } from '../DashboardProvider';
+import { formatCurrency } from '@/lib/utils';
 
 export default function CRMPage() {
-  const [columns, setColumns] = useState<KanbanColumn[]>(INITIAL_DEALS);
+  const { deals, addDeal, moveDeal } = useDashboard();
 
-  function handleCardMove(cardId: string, fromColumnId: string, toColumnId: string) {
-    setColumns(prev =>
-      prev.map(col => {
-        if (col.id === fromColumnId) {
-          return {
-            ...col,
-            items: col.items.filter(item => item.id !== cardId),
-          };
-        }
-        if (col.id === toColumnId) {
-          const card = prev
-            .find(c => c.id === fromColumnId)
-            ?.items.find(item => item.id === cardId);
-          if (card) {
-            return { ...col, items: [...col.items, card] };
-          }
-        }
-        return col;
-      })
-    );
-  }
+  const columns: KanbanColumn[] = [
+    { id: 'prospecting', title: 'Prospecting', items: deals.filter(d => d.stage === 'prospecting').map(d => ({ id: d.id, title: d.title, description: `${formatCurrency(d.value)} - ${d.client}` })) },
+    { id: 'negotiation', title: 'Negotiation', items: deals.filter(d => d.stage === 'negotiation').map(d => ({ id: d.id, title: d.title, description: `${formatCurrency(d.value)} - ${d.client}` })) },
+    { id: 'proposal', title: 'Proposal', items: deals.filter(d => d.stage === 'proposal').map(d => ({ id: d.id, title: d.title, description: `${formatCurrency(d.value)} - ${d.client}` })) },
+    { id: 'won', title: 'Won', items: deals.filter(d => d.stage === 'won').map(d => ({ id: d.id, title: d.title, description: `${formatCurrency(d.value)} - ${d.client}` })) },
+  ];
 
-  const totalDealValue = INITIAL_DEALS.reduce(
-    (sum, col) =>
-      sum +
-      col.items.reduce((colSum, item) => {
-        const match = item.description?.match(/\$(\d+)k/);
-        return colSum + (match ? parseInt(match[1]) * 1000 : 0);
-      }, 0),
-    0
-  );
+  const totalDealValue = deals.reduce((sum, deal) => sum + deal.value, 0);
+
+  const handleNewDeal = () => {
+    const title = prompt('Deal title');
+    const client = prompt('Client name');
+    const value = Number(prompt('Deal value', '0') || '0');
+    if (!title || !client || !value) return;
+    addDeal({ title, client, value, stage: 'prospecting' });
+  };
+
+  const handleCardMove = (cardId: string, fromColumnId: string, toColumnId: string) => {
+    if (['prospecting', 'negotiation', 'proposal', 'won'].includes(toColumnId)) {
+      moveDeal(cardId, toColumnId as any);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -83,7 +40,7 @@ export default function CRMPage() {
           <h1 className="text-3xl font-bold">CRM</h1>
           <p className="text-muted-foreground mt-2">Manage sales pipeline and deals</p>
         </div>
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={handleNewDeal}>
           <Plus className="h-5 w-5" />
           New Deal
         </Button>
@@ -91,30 +48,24 @@ export default function CRMPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Total Pipeline</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Total Pipeline</CardTitle></CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{formatCurrency(totalDealValue)}</div>
-            <p className="text-xs text-muted-foreground mt-1">8 deals total</p>
+            <p className="text-xs text-muted-foreground mt-1">{deals.length} deals total</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Avg Deal Size</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Avg Deal Size</CardTitle></CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{formatCurrency(Math.round(totalDealValue / 8))}</div>
+            <div className="text-3xl font-bold">{deals.length ? formatCurrency(Math.round(totalDealValue / deals.length)) : formatCurrency(0)}</div>
             <p className="text-xs text-muted-foreground mt-1">Per opportunity</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Win Rate</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm">Win Rate</CardTitle></CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">25%</div>
-            <p className="text-xs text-muted-foreground mt-1">2 won this month</p>
+            <div className="text-3xl font-bold">{deals.length ? `${Math.round((deals.filter(d => d.stage === 'won').length / deals.length) * 100)}%` : '0%'}</div>
+            <p className="text-xs text-muted-foreground mt-1">Won deals</p>
           </CardContent>
         </Card>
       </div>
