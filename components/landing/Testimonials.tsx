@@ -16,7 +16,7 @@ export function TestimonialsSection() {
           {TESTIMONIALS.map(testimonial => (
             <Card key={testimonial.id} hover>
               <div className="mb-4 text-2xl">{testimonial.avatar}</div>
-              <p className="mb-6 text-sm text-muted-foreground italic">"{testimonial.content}"</p>
+              <p className="mb-6 text-sm text-muted-foreground italic">&quot;{testimonial.content}&quot;</p>
               <div>
                 <p className="font-semibold text-sm">{testimonial.name}</p>
                 <p className="text-xs text-muted-foreground">{testimonial.role}</p>

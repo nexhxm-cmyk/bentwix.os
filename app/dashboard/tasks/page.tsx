@@ -79,7 +79,7 @@ export default function TasksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Tasks</h1>
-          <p className="text-muted-foreground mt-2">Organize and track your team's work</p>
+          <p className="text-muted-foreground mt-2">Organize and track your team&apos;s work</p>
         </div>
         <Button variant="primary" className="gap-2">
           <Plus className="h-5 w-5" />
